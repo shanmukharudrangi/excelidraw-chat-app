@@ -36,3 +36,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+# Config files with secrets
+apps/http-backend/src/config.ts
+apps/ws-backend/src/config.ts
