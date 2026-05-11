@@ -145,6 +145,38 @@ app.get("/chats/:roomId", async (req, res) => {
 });
 
 
+
+app.get("/room/:slug", async (req, res) => {
+
+  const slug = req.params.slug;
+
+  console.log("slug received:", slug);
+
+  const rooms = await prismaClient.room.findMany();
+
+  console.log("all rooms:", rooms);
+
+  const room = await prismaClient.room.findFirst({
+    where: {
+      slug: slug
+    }
+  });
+
+  console.log("matched room:", room);
+
+  if (!room) {
+    return res.status(404).json({
+      message: "room not found"
+    });
+  }
+
+  return res.json({
+    id: room.id
+  });
+
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

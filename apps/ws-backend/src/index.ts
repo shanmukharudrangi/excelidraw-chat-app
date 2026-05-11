@@ -37,7 +37,7 @@ wss.on("connection", function connection(ws, request) {
   const token = (queryParams.get("token") || "").trim();
 
   if (!token) {
-    ws.send("Token missing");
+    ws.send(JSON.stringify({type:"error",message:"Token missing"}));
     ws.close(1008, "Token missing");
     return;
   }
@@ -45,7 +45,7 @@ wss.on("connection", function connection(ws, request) {
   const userId = checkUser(token);
 
   if (!userId) {
-    ws.send("Invalid token");
+    ws.send(JSON.stringify({type:"error",message:"Invalid token"}));
     ws.close(1008, "Invalid token");
     return;
   }
@@ -60,7 +60,7 @@ wss.on("connection", function connection(ws, request) {
 
   console.log("User connected:", userId);
 
-  ws.send("Connected successfully");
+  ws.send(JSON.stringify({type:"system",message:"Connected successfully"}));
 
   ws.on("message",async function message(data) {
     try {
@@ -88,7 +88,7 @@ wss.on("connection", function connection(ws, request) {
 
       // CHAT MESSAGE
       if (parsedData.type === "chat") {
-        const roomId = parsedData.roomId;
+        const roomId = Number(parsedData.roomId);
         const message = parsedData.message;
         await prismaClient.chat.create({
           data:{
@@ -98,7 +98,7 @@ wss.on("connection", function connection(ws, request) {
           }
         });
         users.forEach((user) => {
-          if (user.rooms.includes(roomId)) {
+          if (user.rooms.includes(parsedData.roomId)) {
             user.ws.send(
               JSON.stringify({
                 type: "chat",
@@ -111,7 +111,7 @@ wss.on("connection", function connection(ws, request) {
       }
     } catch (err) {
       console.error("Invalid message received:", err);
-      ws.send("Invalid message format");
+      ws.send(JSON.stringify({type:"error",message:"Invalid message format"}));
     }
   });
 
